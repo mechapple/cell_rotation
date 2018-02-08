@@ -42,7 +42,7 @@
       double precision, allocatable :: mass(:,:)
       double precision, allocatable :: molmass(:)
       double precision :: xcm, ycm, zcm, unitmass
-      double precision :: x1(3), x2(3), x3(3), charge(5), curr_charge
+      double precision :: x1(3), x2(3), x3(3)
       double precision :: x1p(3), x2p(3), x3p(3)
       double precision :: volcell
       double precision :: theta1, theta2, theta3
@@ -74,8 +74,6 @@
 
       character*2, allocatable :: el(:,:)
       character*1 :: char
-		
-	  charge = (/ -0.54d0, 0.056375d0, -0.4585d0, 0.27d0, 0.860625d0/)
 
 !     Read control file
 
@@ -361,6 +359,8 @@
       Rall = matmul(Rx,Rtemp)
       write(50,*) '#Net Rotation matrix'
       
+! 	  Rall*chosen_h_matrix = newcell_h-matrix (tested)
+
       do i=1,3
          write(50,5000) ( Rall(i,j), j=1,3 )
       enddo
@@ -399,7 +399,7 @@
       write(90,9093) x1(3), x2(3), x3(3)
 9093  format(3F16.8)
 
-      close(90)
+      
 
       hinv(1,1)=1.0d0/lx1     !define inverse h-matrix
       hinv(2,1)=0.0d0
@@ -413,6 +413,15 @@
       hinv(2,3)=(dcos(phi)*dcos(theta)-dcos(psi))/(lx2*volcell*dsin(theta))
       hinv(3,3)=dsin(theta)/(lx3*volcell)
 
+      write(90,9094)
+9094  format('#invH-Matrix')   
+      write(90,9095) hinv(1,1), hinv(1,2), hinv(1,3)
+      write(90,9095) hinv(2,1), hinv(2,2), hinv(2,3)
+      write(90,9095) hinv(3,1), hinv(3,2), hinv(3,3)
+9095  format(3F16.8)
+
+	   close(90)
+	
       !Populate new cell
 
       allocate (r(molperunit,maxval(atpermol,DIM=1),3))
@@ -706,17 +715,18 @@
       xz=x3(1)
       yz=x3(2)
 
-	  do while(abs(xy).gt.(x1(1)*0.5))
-		xy = xy - x1(1)*sign(1.0d+00,xy)
-      end do	
-
-	  do while(abs(xz).gt.(x1(1)*0.5))
-		xz = xz - x1(1)*sign(1.0d+00,xz)
-      end do	
-
-	  do while(abs(yz).gt.(x2(2)*0.5))
-		yz = yz - x2(2)*sign(1.0d+00,yz)
-      end do	
+!	  major bug fixed here ! (Apr 17, 2017)
+!	  do while(abs(xy).gt.(x1(1)*0.5))
+!		xy = xy - x1(1)*sign(1.0d+00,xy)
+!      end do	
+!
+!	  do while(abs(xz).gt.(x1(1)*0.5))
+!		xz = xz - x1(1)*sign(1.0d+00,xz)
+!      end do	
+!
+!	  do while(abs(yz).gt.(x2(2)*0.5))
+!		yz = yz - x2(2)*sign(1.0d+00,yz)
+!      end do	
 
 
       xlo=min(0.0d0,xy,xz,(xy+xz))
@@ -810,12 +820,10 @@
 			if(el(moltype(i),j).eq.'h'.or.el(moltype(i),j).eq.'H') type_atom=4
 			mol_id = iter
 			
-			curr_charge = charge(type_atom)
-			if(j.ge.9 .and.j.le.12) curr_charge = charge(5)
             write(95,9508) iter, type_atom, (rbox(i,j,k),k=1,3)
-            write(96,9622) iter, i, type_atom, curr_charge, (rbox(i,j,k),k=1,3)
+            write(96,9622) iter, type_atom, (rbox(i,j,k),k=1,3)
 9508        format(I6,I6,3F16.8)
-9622        format(3I2,F10.6,3F12.8)
+9622        format(I6,I6,3F16.8)
             iter=iter+1
           enddo
         endif

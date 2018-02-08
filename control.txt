@@ -8,8 +8,8 @@ x3scale= 1
 maxpairs= 100000 100000
 ########################
 #Direction of Interest, give miller indices of planes (hkl)
-Sx= 0.0d0  
-Sy= 0.0d0
+Sx= 1.0d0  
+Sy= -1.0d0
 Sz= 1.0d0  
 ########################
 #Crystal Lattice Parameters
